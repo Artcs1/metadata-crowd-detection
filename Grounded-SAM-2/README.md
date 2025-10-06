@@ -61,6 +61,18 @@ pip install supervision
 pip install transformers==4.53.0
 ```
 
+### 8. Install Segment Anything 2.0
+
+```bash
+pip install -e .
+```
+
+### 9. Install Grounding DINO
+
+```bash
+pip install --no-build-isolation -e grounding_dino
+```
+
 ## Environment Summary
 
 - **Python Version:** 3.10
