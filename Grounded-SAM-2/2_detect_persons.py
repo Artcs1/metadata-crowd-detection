@@ -79,7 +79,7 @@ for c_ind, new_path in enumerate(dirs[start:end]):
 
     print(f'{start+c_ind} / {len(dirs)}')
 
-    try:
+    if True:
         p = Path(new_path)
         current_dir = Path(str(p).replace("jsons_step1", "videos_frames"))
         current_dir = str(current_dir.with_suffix(""))
@@ -328,6 +328,7 @@ for c_ind, new_path in enumerate(dirs[start:end]):
         json2_path = p3.parent
 
         CommonUtils.creat_dirs(json2_path)
+        print(json2_path)
 
         with open(f"{new_path2}", "w") as fp:
             json.dump(json_data_s1, fp, indent=4)
@@ -344,5 +345,5 @@ for c_ind, new_path in enumerate(dirs[start:end]):
         #    print("El directorio no existe")
 
         torch.cuda.empty_cache()
-    except Exception as e:
-        pass
+    #except Exception as e:
+    #    pass

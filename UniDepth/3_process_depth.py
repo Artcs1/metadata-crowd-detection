@@ -41,12 +41,17 @@ def get_3d_with_fov(depth_array, fov):
 
 
 def main():
-    
+
     parser = argparse.ArgumentParser(description="Simple argparse example")
-    parser.add_argument("--device", type=int, help="Cuda Device")
-    parser.add_argument("--start", type=int, help="Start of the worker")
+
+    parser.add_argument("--dataset_path",  type=str, default='VBIG_dataset', help="Dataset Path")
+    parser.add_argument("--device", type=int, default=0, help="Cuda Device")
+    parser.add_argument("--start", type=int, default=0, help="Start of the worker")
     parser.add_argument("--end", type=int, help="Start of the worker")
+
+
     args = parser.parse_args()
+
 
     device = str(args.device)
     pipe = pipeline(task="depth-estimation", model="depth-anything/Depth-Anything-V2-Large-hf", device="cuda:"+str(device))
@@ -58,13 +63,18 @@ def main():
     colors = [cmap(i) for i in range(N)]
     palette = (np.array(colors)[:, :3] * 255).astype(np.uint8)
     
-    dirs = [d for d in glob.glob("VBIG_dataset/jsons_step2/*") if os.path.isfile(d)]
+    dirs = [d for d in glob.glob(args.dataset_path+"/jsons_step2/*") if os.path.isfile(d)]
     name = 'unidepth-v2-vitl14'
     model = UniDepthV2.from_pretrained(f"lpiccinelli/{name}")
     model.to('cuda:'+str(device))
 
-    start = args.start
-    end = args.end
+    start = int(args.start)
+    if args.end is None:
+        end = len(dirs)
+    else:
+        end  = int(args.end)
+
+
     
     for json_path2 in tqdm(dirs[start:end]):
 
