@@ -1,5 +1,7 @@
 # Grounded-SAM-2 Setup Guide
 
+**Hint:** Each step has its on enviorenment to avoid conflicts. You should gitclone the GSAM2 project and then copypaste the current code to this folder.
+
 This guide provides step-by-step instructions for setting up the Grounded-SAM-2 project.
 
 ## Source
