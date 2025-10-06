@@ -79,7 +79,7 @@ for c_ind, new_path in enumerate(dirs[start:end]):
 
     print(f'{start+c_ind} / {len(dirs)}')
 
-    if True:
+    try:
         p = Path(new_path)
         current_dir = Path(str(p).replace("jsons_step1", "videos_frames"))
         current_dir = str(current_dir.with_suffix(""))
@@ -345,5 +345,5 @@ for c_ind, new_path in enumerate(dirs[start:end]):
         #    print("El directorio no existe")
 
         torch.cuda.empty_cache()
-    #except Exception as e:
-    #    pass
+    except Exception as e:
+        pass
