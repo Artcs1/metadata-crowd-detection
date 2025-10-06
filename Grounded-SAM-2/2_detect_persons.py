@@ -22,8 +22,9 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description="Simple argparse example")
 
-parser.add_argument("--device", type=int, help="Cuda Device")
-parser.add_argument("--start", type=int, help="Start of the worker")
+parser.add_argument("--dataset_path",  type=str, default='VBIG_dataset', help="Dataset Path")
+parser.add_argument("--device", type=int, default=0, help="Cuda Device")
+parser.add_argument("--start", type=int, default=0, help="Start of the worker")
 parser.add_argument("--end", type=int, help="Start of the worker")
 
 
@@ -47,13 +48,18 @@ sam2_checkpoint = "./checkpoints/sam2.1_hiera_large.pt"
 model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-start = int(args.start)
-end  = int(args.end)
 
 print("device", device)
 
 #dirs = [d for d in glob.glob("/gpfs/scratch/jmurrugarral/VBIG_dataset/videos_frames/*") if os.path.isdir(d)]
-dirs = [d for d in glob.glob("VBIG_dataset/jsons_step1/*") if os.path.isfile(d)]
+dirs = [d for d in glob.glob(args.dataset_path+"/jsons_step1/*") if os.path.isfile(d)]
+
+
+start = int(args.start)
+if args.end is None:
+    end = len(dirs)
+else:
+    end  = int(args.end)
 print(len(dirs))
 
 video_predictor = build_sam2_video_predictor(model_cfg, sam2_checkpoint)
