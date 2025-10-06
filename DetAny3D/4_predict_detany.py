@@ -25,12 +25,16 @@ import argparse
 import glob
 import copy
 
-parser = argparse.ArgumentParser(description="Simple argparse example")
-parser.add_argument("--device", type=int, help="Cuda Device")
-parser.add_argument("--start", type=int, help="Start of the worker")
-parser.add_argument("--end", type=int, help="Start of the worker")
-args = parser.parse_args()
 
+
+parser = argparse.ArgumentParser(description="Simple argparse example")
+
+parser.add_argument("--dataset_path",  type=str, default='VBIG_dataset', help="Dataset Path")
+parser.add_argument("--device", type=int, default=0, help="Cuda Device")
+parser.add_argument("--start", type=int, default=0, help="Start of the worker")
+parser.add_argument("--end", type=int, help="Start of the worker")
+
+args = parser.parse_args()
 
 with open('./detect_anything/configs/demo.yaml', 'r', encoding='utf-8') as f:
     cfg = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -170,9 +174,15 @@ def draw_text(im, text, pos, scale=0.4, color='auto', font=cv2.FONT_HERSHEY_SIMP
 
 device = str(args.device)
 
-dirs = [d for d in glob.glob("VBIG_dataset/jsons_step3/*") if os.path.isfile(d)]
-start = args.start
-end = args.end
+dirs = [d for d in glob.glob(args.dataset_path+"/jsons_step3/*") if os.path.isfile(d)]
+
+
+start = int(args.start)
+if args.end is None:
+    end = len(dirs)
+else:
+    end  = int(args.end)
+
 
 print(dirs)
 
