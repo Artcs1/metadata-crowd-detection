@@ -10,7 +10,7 @@ This guide provides step-by-step instructions for setting up the Grounded-SAM-2 
 
 ## Installation Steps
 
-### 0. Clone the Repository and Copy or Replace the Current Files.
+### 1. Clone the Repository and Copy or Replace the Current Files.
 
 ```bash
 git clone https://github.com/IDEA-Research/Grounded-SAM-2.git
