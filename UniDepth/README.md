@@ -3,7 +3,17 @@
 
 This guide provides step-by-step instructions for setting up UniDepth.
 
+## Source
+
+**Repository:** [https://github.com/lpiccinelli-eth/UniDepth](https://github.com/lpiccinelli-eth/UniDepth)
+
 ## Installation Steps
+
+### 0. Clone the Repository and copy or replace the current files in the folder.
+
+```bash
+git clone https://github.com/lpiccinelli-eth/UniDepth.git
+```
 
 ### 1. Create and Activate Conda Environment
 
