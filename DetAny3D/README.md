@@ -2,7 +2,18 @@
 
 This guide provides step-by-step instructions for setting up DetAny3D.
 
+
+## Source
+
+**Repository:** [https://github.com/OpenDriveLab/DetAny3D](https://github.com/OpenDriveLab/DetAny3D)
+
 ## Installation Steps
+
+### 0. Clone the Repository and Copy or Replace the Current Files.
+
+```bash
+git clone https://github.com/OpenDriveLab/DetAny3D.git
+```
 
 ### 1. Create and Activate Conda Environment
 
