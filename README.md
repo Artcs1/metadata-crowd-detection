@@ -29,7 +29,7 @@ conda create -n py11-unidepth python=3.11
 # Install UniDepth requirements
 
 # Environment for DetAny3D
-conda create -n py08-detany python=3.8
+conda create -n py08-detany3d python=3.8
 # Install DetAny3D requirements
 ```
 
