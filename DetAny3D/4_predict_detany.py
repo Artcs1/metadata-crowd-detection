@@ -183,9 +183,6 @@ if args.end is None:
 else:
     end  = int(args.end)
 
-
-print(dirs)
-
 for json_path3 in tqdm(dirs[start:end]):
 
     try:

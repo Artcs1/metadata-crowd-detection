@@ -16,6 +16,7 @@ import shutil
 import logging
 import glob
 import copy
+import argparse
 
 
 from PIL import Image
@@ -37,26 +38,43 @@ def main():
         
     #model_v2 = UniDepthV2.from_pretrained(f"lpiccinelli/{name}")
 
+    parser = argparse.ArgumentParser(description="Simple argparse example")
+    parser.add_argument("--dataset_path",  type=str, default='VBIG_dataset', help="Dataset Path")
+    parser.add_argument("--device", type=int, default=0, help="Cuda Device")
+    parser.add_argument("--start", type=int, default=0, help="Start of the worker")
+    parser.add_argument("--end", type=int, help="Start of the worker")
+    args = parser.parse_args()
+
+
+
 
     logging.getLogger("ultralytics").setLevel(logging.ERROR)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    qwen = Qwen2_5_VLForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct",torch_dtype=torch.bfloat16,device_map="cuda:0")
+    qwen = Qwen2_5_VLForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct",torch_dtype=torch.bfloat16,device_map="cuda:"+str(args.device))
     #qwen = Qwen2_5_VLForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct",torch_dtype=torch.bfloat16)#,attn_implementation="flash_attention_2",device_map="cuda:2",)
     
     processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct")
     qwen.eval()
     
     pose = YOLO("yolo11m-pose.pt", 0.15)
-    pose.to('cuda:0')
+    pose.to('cuda:'+str(args.device))
     print(pose.device)
     
-    dirs = [d for d in glob.glob("VBIG_dataset/jsons_step4/*") if os.path.isfile(d)]
+    dirs = [d for d in glob.glob(args.dataset_path+"/jsons_step4/*") if os.path.isfile(d)]
 
     #print(dirs)
     parts  = ["Nose", "Left Eye", "Right Eye", "Left Ear", "Right Ear", "Left Shoulder", "Right Shoulder","Left Elbow","Right Elbow","Left Wrist","Right Wrist","Left Hip","Right Hip","Left Knee","Right Knee","Left Ankle","Right Ankle"]
     
-    for json_path4 in dirs:
+    start = int(args.start)
+    if args.end is None:
+        end = len(dirs)
+    else:
+        end  = int(args.end)
+
+
+    
+    for json_path4 in tqdm(dirs[start:end]):
 
         print(json_path4)
 
