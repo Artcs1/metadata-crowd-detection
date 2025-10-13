@@ -8,8 +8,27 @@ git clone https://github.com/Artcs1/metadata-crowd-detection.git
 cd metadata-crowd-detection
 ```
 
-### 2. Verify Directory Structure
-Ensure your project follows the expected structure outlined in the repository documentation.
+### 2. Directory Structure
+Your dataset folder should follow this structure:
+
+```
+VBIG_dataset/
+├── videos_frames/
+│   ├── video1/
+│   │   ├── frame_00001.jpeg
+│   │   ├── frame_00002.jpeg
+│   │   └── ...
+│   ├── video2/
+│   │   ├── frame_00001.jpeg
+│   │   └── ...
+│   └── ...
+└── jsons_step1/
+    ├── video1.json
+    ├── video2.json
+    └── ...
+```
+
+**Important:** Each video folder under `videos_frames/` must have a corresponding folder with the same name under `jsons_step1/`.
 
 ### 3. Environment Setup
 This project requires multiple conda environments to avoid dependency conflicts. Create the necessary environments:
@@ -29,7 +48,7 @@ conda create -n py11-unidepth python=3.11
 # Install UniDepth requirements
 
 # Environment for DetAny3D
-conda create -n py08-detany3d python=3.8
+conda create -n py08-detany python=3.8
 # Install DetAny3D requirements
 ```
 
