@@ -61,6 +61,11 @@ pip install python-box
 pip install gradio
 pip install gradio_image_prompter
 ```
+### 7. Download checkpoints
+
+```bash
+bash download_checkpoints.sh
+```
 
 ## Environment Summary
 
