@@ -16,7 +16,7 @@ while [ $START -lt $TOTAL ]; do
     
     echo "Launching chunk $i: device=$DEVICE, start=$NSTART, end=$END"
     
-    python3 predict_detany.py --device $DEVICE --start $NSTART --end $END &
+    python3 4_predict_detany.py --device $DEVICE --start $NSTART --end $END &
     
     START=$((END))
     i=$((i + 1))
