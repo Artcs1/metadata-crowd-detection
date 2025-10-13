@@ -18,7 +18,7 @@ git clone https://github.com/OpenDriveLab/DetAny3D.git
 ### 1. Create and Activate Conda Environment
 
 ```bash
-conda create -n detany3d python=3.8
+conda create -n py08-detany3d python=3.8
 conda activate detany3d
 ```
 
