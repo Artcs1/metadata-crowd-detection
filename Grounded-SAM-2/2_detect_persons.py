@@ -36,7 +36,7 @@ args = parser.parse_args()
 Step 1: Environment settings and model initialization
 """
 # use bfloat16 for the entire notebook
-torch.autocast(device_type="cuda", dtype=torch.bfloat16).__enter__()
+torch.autocast(device_type="cuda:"+str(args.device), dtype=torch.bfloat16).__enter__()
 
 if torch.cuda.get_device_properties(0).major >= 8:
     # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
@@ -46,7 +46,7 @@ if torch.cuda.get_device_properties(0).major >= 8:
 # init sam image predictor and video predictor model
 sam2_checkpoint = "./checkpoints/sam2.1_hiera_large.pt"
 model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda:"+str(args.device) if torch.cuda.is_available() else "cpu"
 
 
 print("device", device)
@@ -70,6 +70,8 @@ image_predictor = SAM2ImagePredictor(sam2_image_model)
 model_id = "IDEA-Research/grounding-dino-tiny"
 processor = AutoProcessor.from_pretrained(model_id)
 grounding_model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(device)
+
+print(device)
     
 
 
@@ -79,7 +81,7 @@ for c_ind, new_path in enumerate(dirs[start:end]):
 
     print(f'{start+c_ind} / {len(dirs)}')
 
-    try:
+    if True:
         p = Path(new_path)
         current_dir = Path(str(p).replace("jsons_step1", "videos_frames"))
         current_dir = str(current_dir.with_suffix(""))
@@ -345,5 +347,5 @@ for c_ind, new_path in enumerate(dirs[start:end]):
         #    print("El directorio no existe")
 
         torch.cuda.empty_cache()
-    except Exception as e:
-        pass
+    #except Exception as e:
+    #    pass

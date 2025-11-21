@@ -20,11 +20,8 @@ import argparse
 
 
 from PIL import Image
-from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from ultralytics import YOLO
-from transformers import pipeline
 from PIL import Image
-from qwen_vl_utils import process_vision_info
 from our_utils import *
 from tqdm import tqdm
 from pathlib import Path
@@ -51,11 +48,11 @@ def main():
     logging.getLogger("ultralytics").setLevel(logging.ERROR)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    qwen = Qwen2_5_VLForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct",torch_dtype=torch.bfloat16,device_map="cuda:"+str(args.device))
+    #qwen = Qwen2_5_VLForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct",torch_dtype=torch.bfloat16,device_map="cuda:"+str(args.device))
     #qwen = Qwen2_5_VLForConditionalGeneration.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct",torch_dtype=torch.bfloat16)#,attn_implementation="flash_attention_2",device_map="cuda:2",)
     
-    processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct")
-    qwen.eval()
+    #processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct")
+    #qwen.eval()
     
     pose = YOLO("yolo11m-pose.pt", 0.15)
     pose.to('cuda:'+str(args.device))
@@ -78,7 +75,7 @@ def main():
 
         print(json_path4)
 
-        try:
+        if True:
 
             p = Path(json_path4)
             current_dir = Path(str(p).replace("jsons_step4", "videos_frames"))
@@ -105,6 +102,9 @@ def main():
                     o1_x1, o1_y1, o1_x2, o1_y2 = map(int, detection['bbox'])
                     o1_mid = ((o1_x1+o1_x2)//2, (o1_y1+o1_y2)//2)
                 
+                    if o1_x1 == o1_x2 or o1_y1 == o1_y2:
+                        continue
+
                     opencv_frame = image[int(o1_y1):int(o1_y2),int(o1_x1):int(o1_x2)]
                     opencv_frames.append(opencv_frame)
                     
@@ -112,27 +112,30 @@ def main():
                     label = 'person'
                     rgb_tuple = (255, 0, 0)
                     
-                    prob_male, answer_male = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person a male?')
-                    prob_female, answer_female = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person a female?')
-                    prob_child, answer_child = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person a child?')
-                    prob_nbin, answer_nbin = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person non-binary?')
+                    #prob_male, answer_male = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person a male?')
+                    #prob_female, answer_female = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person a female?')
+                    #prob_child, answer_child = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person a child?')
+                    #prob_nbin, answer_nbin = vqa_yes_prob(qwen, processor, pil_frame, 'Is the person non-binary?')
             
-                    person = np.array([prob_male, prob_female, prob_child, prob_nbin])
-                    sex = 'unknown'
-                    if np.argmax(person)   == 0:
-                        sex='male'
-                    elif np.argmax(person) == 1:
-                        sex='female'
-                    elif np.argmax(person) == 2:
-                        sex='child'
-                    elif np.argmax(person) == 3:
-                        sex='non binary'
+                    #person = np.array([prob_male, prob_female, prob_child, prob_nbin])
+                    #sex = 'unknown'
+                    #if np.argmax(person)   == 0:
+                    #    sex='male'
+                    #elif np.argmax(person) == 1:
+                    #    sex='female'
+                    #elif np.argmax(person) == 2:
+                    #    sex='child'
+                    #elif np.argmax(person) == 3:
+                    #    sex='non binary'
     
-                    json_data_s5['frames'][ind]['detections'][det_id]['sex'] = sex
+                    #json_data_s5['frames'][ind]['detections'][det_id]['sex'] = sex
                     
                     #draw_tracking(frame=image, bbox = detection['bbox'], label=label, color=rgb_tuple)
     
                 #print(len(opencv_frames))
+                if opencv_frames == []:
+                    continue
+                #print(opencv_frames)
                 results = pose(opencv_frames)
     
                 for det_id, pose_result in enumerate(results):
@@ -141,61 +144,62 @@ def main():
                     #print(len(pose_result))
                     #print(pose_result)
                     #print('_________________________________')
+
+                    direction, visible   = 'unknown', 'unknown'
                     if len(pose_result) == 0:
                         json_data_s5['frames'][ind]['detections'][det_id]['direction'] = direction
                         json_data_s5['frames'][ind]['detections'][det_id]['visible'] = visible
-                        continue
+                   
+                    else:
                     
-                    direction, visible   = 'unknown', 'unknown'
+                        if len(pose_result[0].boxes) > 0:
                 
-                    if len(pose_result[0].boxes) > 0:
+                            confs = pose_result[0].boxes.conf.cpu().numpy()
+                            best_idx = confs.argmax()
+                            
+                            highest_conf_result = pose_result[0][best_idx:best_idx+1]            
+                            confidence = highest_conf_result.keypoints.conf
+                            #print(confidence)
+                            
+                            values = highest_conf_result.keypoints.conf>0.3
+                            parts  = ["Nose", "Left Eye", "Right Eye", "Left Ear", "Right Ear", "Left Shoulder", "Right Shoulder","Left Elbow","Right Elbow","Left Wrist","Right Wrist","Left Hip","Right Hip","Left Knee","Right Knee","Left Ankle","Right Ankle"]
+                            n_val = values.cpu().detach().numpy()[0]
+                            #print(highest_conf_result)
+                            key_values = highest_conf_result.keypoints.conf.cpu().detach().numpy()[0]
+                            #print(highest_conf_result.keypoints.xy)
+                            pose_position = highest_conf_result.keypoints.xy.cpu().detach().numpy()[0]
+                            #print(pose_position)
+                            counts_points_body = np.sum(np.array(n_val[5:]))
+                
+                            if counts_points_body:
+                                visible = 'not occluded'
+                            else:
+                                visible = 'occluded'
+                
+                            if n_val[0] == True and n_val[1] == True and n_val[2] == True and n_val[3] == True and n_val[4] == True:
+                                direction = 'front'
+                            elif n_val[0] == True and n_val[1] == True and n_val[2] == True and n_val[3] == True and n_val[4] == False:
+                                direction = 'front right'
+                            elif n_val[0] == True and n_val[1] == True and n_val[2] == False and n_val[3] == True and n_val[4] == False:
+                                direction = 'front rright'
+                            elif n_val[0] == True and n_val[1] == True and n_val[2] == True and n_val[3] == False and n_val[4] == True:
+                                direction = 'front left'
+                            elif n_val[0] == True and n_val[1] == False and n_val[2] == True and n_val[3] == False and n_val[4] == True:
+                                direction = 'front lleft'
+                            elif n_val[0] == False and n_val[1] == False and n_val[2] == False and n_val[3] == True and n_val[4] == True:
+                                direction = 'back'
+                            elif n_val[0] == False and n_val[1] == False and n_val[2] == True and n_val[3] == True and n_val[4] == True:
+                                direction = 'back right'
+                            elif n_val[0] == False and n_val[1] == True and n_val[2] == False and n_val[3] == True and n_val[4] == True:
+                                direction = 'back left'
             
-                        confs = pose_result[0].boxes.conf.cpu().numpy()
-                        best_idx = confs.argmax()
+                            json_data_s5['frames'][ind]['detections'][det_id]['xy_body_parts'] = pose_position.tolist()
+                            json_data_s5['frames'][ind]['detections'][det_id]['conf_body_parts'] = key_values.tolist()
+                        #print(json_data_s5['frames'][ind]['detections'][det_id])
                         
-                        highest_conf_result = pose_result[0][best_idx:best_idx+1]            
-                        confidence = highest_conf_result.keypoints.conf
-                        #print(confidence)
-                        
-                        values = highest_conf_result.keypoints.conf>0.3
-                        parts  = ["Nose", "Left Eye", "Right Eye", "Left Ear", "Right Ear", "Left Shoulder", "Right Shoulder","Left Elbow","Right Elbow","Left Wrist","Right Wrist","Left Hip","Right Hip","Left Knee","Right Knee","Left Ankle","Right Ankle"]
-                        n_val = values.cpu().detach().numpy()[0]
-                        #print(highest_conf_result)
-                        key_values = highest_conf_result.keypoints.conf.cpu().detach().numpy()[0]
-                        #print(highest_conf_result.keypoints.xy)
-                        pose_position = highest_conf_result.keypoints.xy.cpu().detach().numpy()[0]
-                        #print(pose_position)
-                        counts_points_body = np.sum(np.array(n_val[5:]))
-            
-                        if counts_points_body:
-                            visible = 'not occluded'
-                        else:
-                            visible = 'occluded'
-            
-                        if n_val[0] == True and n_val[1] == True and n_val[2] == True and n_val[3] == True and n_val[4] == True:
-                            direction = 'front'
-                        elif n_val[0] == True and n_val[1] == True and n_val[2] == True and n_val[3] == True and n_val[4] == False:
-                            direction = 'front right'
-                        elif n_val[0] == True and n_val[1] == True and n_val[2] == False and n_val[3] == True and n_val[4] == False:
-                            direction = 'front rright'
-                        elif n_val[0] == True and n_val[1] == True and n_val[2] == True and n_val[3] == False and n_val[4] == True:
-                            direction = 'front left'
-                        elif n_val[0] == True and n_val[1] == False and n_val[2] == True and n_val[3] == False and n_val[4] == True:
-                            direction = 'front lleft'
-                        elif n_val[0] == False and n_val[1] == False and n_val[2] == False and n_val[3] == True and n_val[4] == True:
-                            direction = 'back'
-                        elif n_val[0] == False and n_val[1] == False and n_val[2] == True and n_val[3] == True and n_val[4] == True:
-                            direction = 'back right'
-                        elif n_val[0] == False and n_val[1] == True and n_val[2] == False and n_val[3] == True and n_val[4] == True:
-                            direction = 'back left'
+                        json_data_s5['frames'][ind]['detections'][det_id]['direction'] = direction
+                        json_data_s5['frames'][ind]['detections'][det_id]['visible'] = visible
         
-                        json_data_s5['frames'][ind]['detections'][det_id]['xy_body_parts'] = pose_position.tolist()
-                        json_data_s5['frames'][ind]['detections'][det_id]['conf_body_parts'] = key_values.tolist()
-                    #print(json_data_s5['frames'][ind]['detections'][det_id])
-                    
-                    json_data_s5['frames'][ind]['detections'][det_id]['direction'] = direction
-                    json_data_s5['frames'][ind]['detections'][det_id]['visible'] = visible
-    
                 #plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
                 #plt.show()
                 
@@ -214,8 +218,8 @@ def main():
             #print(json_data_s5)
     
    
-        except Exception as e:
-            pass 
+        #except Exception as e:
+        #    pass 
 if __name__ == '__main__':
     main()
 
