@@ -34,22 +34,33 @@ VBIG_dataset/
 This project requires multiple conda environments to avoid dependency conflicts. Create the necessary environments:
 
 ```bash
+
 # Base environment for steps 1 and 5
 conda create -n py10-video python=3.10
 conda activate py10-video
 # Install requirements from requirements.txt
 
-# Environment for Grounded-SAM-2
-conda create -n py10-gsam2 python=3.10
-# Install Grounded-SAM-2 requirements
+## INSTALL SAM3
 
-# Environment for UniDepth
-conda create -n py11-unidepth python=3.11
-# Install UniDepth requirements
+conda create --name sam3 python=3.12
+conda activate sam3
+pip install torch==2.9.0 torchvision==0.24.0 torchaudio==2.9.0 --index-url https://download.pytorch.org/whl/cu130
+pip install git+https://github.com/facebookresearch/sam3.git
+pip install -r sam3_requirements.txt
 
-# Environment for DetAny3D
+
+## INSTALL UNIDEPTH ENV
+
+conda create --name unidepth python=3.11
+conda activate unidepth
+pip install torch==2.9.0 torchvision==0.24.0 torchaudio==2.9.0 --index-url https://download.pytorch.org/whl/cu130
+pip install git+https://github.com/lpiccinelli-eth/UniDepth.git
+pip install transformers==5.5.0
+
+## INSTALL DETANY3D
 conda create -n py08-detany python=3.8
 # Install DetAny3D requirements
+
 ```
 
 **HPC Users:** Some steps require NVCC (NVIDIA CUDA Compiler). Load it with:
