@@ -1,0 +1,14 @@
+pyyaml
+opencv-python
+six
+termcolor
+einops
+shapely
+open3d
+ninja
+mmcv
+timm
+xformers
+python-box
+gradio
+gradio_image_prompter

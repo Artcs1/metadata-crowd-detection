@@ -11,6 +11,8 @@ from box import Box
 import random
 import gradio as gr
 
+from groundingdino.util.inference import load_model
+from groundingdino.util.inference import predict as dino_predict
 from tqdm import tqdm
 from pathlib import Path
 from torchvision.ops import box_convert
@@ -22,6 +24,8 @@ import io
 import argparse
 import glob
 import copy
+
+
 
 parser = argparse.ArgumentParser(description="Simple argparse example")
 
@@ -62,8 +66,26 @@ my_sam_model.setup()
 my_sam_model.eval()
 sam_trans = ResizeLongestSide(cfg.model.pad)
 
+dino_model = load_model("GroundingDINO/groundingdino/config/GroundingDINO_SwinB_cfg.py", "GroundingDINO/weights/groundingdino_swinb_cogcoor.pth")
+dino_model.eval()
+BOX_TRESHOLD = 0.37
 TEXT_TRESHOLD = 0.25
 
+import groundingdino.datasets.transforms as T
+
+def convert_image(img):
+
+    transform = T.Compose(
+        [
+            T.RandomResize([800], max_size=1333),
+            T.ToTensor(),
+            T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
+    image_source = Image.fromarray(img, 'RGB')
+    image = np.asarray(image_source)
+    image_transformed, _ = transform(image_source, None)
+    return image, image_transformed
 
 def crop_hw(img):
         
@@ -161,10 +183,9 @@ if args.end is None:
 else:
     end  = int(args.end)
 
-
 for json_path3 in tqdm(dirs[start:end]):
 
-    if True:
+    try:
         p = Path(json_path3)
         current_dir = Path(str(p).replace("jsons_step3", "videos_frames"))
         current_dir = str(current_dir.with_suffix(""))
@@ -224,9 +245,29 @@ for json_path3 in tqdm(dirs[start:end]):
                     mode = 'point'
                     label_list = ["Unknow"]
         
+                image_source_dino, image_dino = convert_image(img)
                 if text is not '' and mode == 'point':
                     continue
                     
+                boxes, logits, phrases = dino_predict(
+                    model=dino_model,
+                    image=image_dino,
+                    caption=text,
+                    box_threshold=BOX_TRESHOLD,
+                    text_threshold=TEXT_TRESHOLD,
+                    remove_combined=False,
+                )
+                h, w, _ = image_source_dino.shape
+                boxes = boxes * torch.Tensor([w, h, w, h])
+                xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy")
+                for i, box in enumerate(xyxy):
+                    if mode == 'box':
+                        bbox_2d_list.append(box.to(torch.int).cpu().numpy().tolist())
+                        label_list.append(phrases[i])
+                    elif mode == 'point':
+                        pass
+                
+        
                 if len(bbox_2d_list) == 0 and len(point_coords_list) == 0:
                     continue
                     
@@ -254,6 +295,7 @@ for json_path3 in tqdm(dirs[start:end]):
                 if mode == 'box':
                     bbox_2d_tensor = torch.tensor(bbox_2d_list)
                     bbox_2d_tensor = sam_trans.apply_boxes_torch(bbox_2d_tensor, original_size).to(torch.int).to('cuda:'+str(args.device))
+                    print(bbox_2d_tensor.shape)
                     input_dict = {
                         "images": img_for_sam,
                         'vit_pad_size': torch.tensor(vit_pad_size).to('cuda:'+str(args.device)).unsqueeze(0),
@@ -326,7 +368,7 @@ for json_path3 in tqdm(dirs[start:end]):
         with open(f"{new_path2}", "w") as fp: 
             json.dump(json_data_s4, fp, indent=4)
 
-    #except Exception as e:
-    #    pass
+    except Exception as e:
+        pass
 
 
