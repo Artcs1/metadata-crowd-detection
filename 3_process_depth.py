@@ -22,10 +22,102 @@ logging.getLogger("ultralytics").setLevel(logging.ERROR)
 from transformers import pipeline
 from unidepth.models import UniDepthV1, UniDepthV2
 from PIL import Image
-from our_utils import *
 from tqdm import tqdm
 from pathlib import Path
 
+def draw_tracking(frame, bbox, label, color):
+    x1, y1, x2, y2 = map(int, bbox)
+    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 4)
+    cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+def get_intrinsics(H, W, fov=55):
+    f = 0.5*W/np.tan(0.5*fov*np.pi/180.0)
+    cx = 0.5 * H
+    cy = 0.5 * W
+    return np.array([[f,0,cx],
+                     [0,f,cy],
+                     [0,0,1]])
+
+def pixel_to_point(depth_image, normalize, camera_intrinsics=None):
+    
+    height, width = depth_image.shape
+    if camera_intrinsics is None:
+        camera_intrinsics = get_intrinsics(height, width, fov=55.0)
+
+    fx, fy = camera_intrinsics[0, 0], camera_intrinsics[1, 1]
+    cx, cy = camera_intrinsics[0, 2], camera_intrinsics[1, 2]
+
+    x = np.linspace(0, width - 1, width)
+    y = np.linspace(0, height - 1, height)
+
+    u, v = np.meshgrid(x, y)
+
+    x_over_z = (u - cx) / (fx)
+    y_over_z = (v - cy) / (fy)
+
+    # 3-D Pythagoras re-arranged to solve for z
+    if normalize:
+        z = depth_image/ np.sqrt(1. + x_over_z**2 + y_over_z**2)
+    else:
+        z = depth_image
+        
+    x = x_over_z * z
+    y = y_over_z * z
+
+    return x, y, z
+
+
+
+def pil_to_opencv(pil_img):
+    """
+    Convert a PIL Image to an OpenCV image (NumPy array).
+    Handles RGB, RGBA, and L (grayscale).
+    """
+    # Ensure it's a PIL Image object
+    if not isinstance(pil_img, Image.Image):
+        raise TypeError("Input must be a PIL Image.")
+
+    # Convert to NumPy
+    np_img = np.array(pil_img)
+
+    # Handle different PIL modes
+    if pil_img.mode == "RGB":
+        # PIL (RGB) -> OpenCV (BGR)
+        return cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+    elif pil_img.mode == "RGBA":
+        # PIL (RGBA) -> OpenCV (BGRA)
+        return cv2.cvtColor(np_img, cv2.COLOR_RGBA2BGRA)
+    elif pil_img.mode == "L":
+        # PIL (grayscale) just becomes 2D array, no color channel swap needed
+        return np_img
+    else:
+        # Fallback: convert PIL to RGB first
+        rgb_img = pil_img.convert("RGB")
+        np_img = np.array(rgb_img)
+        return cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+
+def opencv_to_pil(cv_img):
+    """
+    Convert an OpenCV image (NumPy array, BGR/BGRA/Gray) back to a PIL Image.
+    """
+    if not isinstance(cv_img, np.ndarray):
+        raise TypeError("Input must be a NumPy array (OpenCV image).")
+
+    # Check shape to figure out color space
+    if len(cv_img.shape) == 2:
+        # Grayscale
+        return Image.fromarray(cv_img)
+    elif len(cv_img.shape) == 3:
+        channels = cv_img.shape[2]
+        if channels == 3:
+            # OpenCV (BGR) -> PIL (RGB)
+            return Image.fromarray(cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB))
+        elif channels == 4:
+            # OpenCV (BGRA) -> PIL (RGBA)
+            return Image.fromarray(cv2.cvtColor(cv_img, cv2.COLOR_BGRA2RGBA))
+
+    # Fallback: Convert to RGB
+    return Image.fromarray(cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB))
 
 def get_3d_with_fov(depth_array, fov):
             
@@ -78,8 +170,8 @@ def main():
     
     for json_path2 in tqdm(dirs[start:end]):
 
-        try:
-
+        #try:
+        if True:
             p = Path(json_path2)
             current_dir = Path(str(p).replace("jsons_step2", "videos_frames"))
             current_dir = str(current_dir.with_suffix(""))
@@ -182,16 +274,18 @@ def main():
             #print(json_data_s3)
             p2 = Path(json_path2)         
             new_path2 = Path(str(p2).replace("jsons_step2", "jsons_step3"))
-        
+            print(new_path2)
+
             p3 = Path(new_path2)
             json3_path = p3.parent
+            print(json3_path)
     
             os.makedirs(json3_path, exist_ok=True)
             with open(f"{new_path2}", "w") as fp: 
                 json.dump(json_data_s3, fp, indent=4)
 
-        except Exception as e:
-            pass
+        #except Exception as e:
+        #    pass
 
         
             

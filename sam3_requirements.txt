@@ -1,0 +1,10 @@
+setuptools==68.2.0
+einops
+pycocotools
+psutil
+opencv-python
+matplotlib
+pandas
+scikit-image
+scikit-learn
+numpy==1.26.4
