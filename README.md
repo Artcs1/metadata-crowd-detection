@@ -58,6 +58,7 @@ pip install git+https://github.com/lpiccinelli-eth/UniDepth.git
 pip install transformers==5.5.0
 
 ## INSTALL DETANY3D
+
 conda create --name detany3d python=3.10 (change the cuda version as you need)
 conda activate detany3d
 # INSTALL DETANY3D requirements (see the folder)
