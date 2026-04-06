@@ -61,9 +61,7 @@ pip install transformers==5.5.0
 
 conda create --name detany3d python=3.10 (change the cuda version as you need)
 conda activate detany3d
-
 # DOWNLOAD DETANY3D and requirements and move their related files to the directory.
-
 pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cu130
 pip install git+https://github.com/facebookresearch/segment-anything.git
 pip install -r det_requirements.txt
