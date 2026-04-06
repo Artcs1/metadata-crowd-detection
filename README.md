@@ -110,7 +110,7 @@ python3 3_process_depth.py --dataset_path <root_directory>
 
 ```bash
 cd DetAny3D
-conda activate py08-detany
+conda activate detany3d
 python3 4_predict_detany.py --dataset_path <root_directory>
 cd ..
 ```
