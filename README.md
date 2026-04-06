@@ -87,20 +87,16 @@ python3 1_convert_videos_frames.py --dataset_path ./VBIG_dataset/
 **Environment:** `py10-gsam2` | **Location:** `Grounded-SAM-2/`
 
 ```bash
-cd Grounded-SAM-2
-conda activate py10-gsam2
-python3 2_detect_persons.py --dataset_path ../../../VBIG_dataset/
-cd ..
+conda activate sam3
+python3 2_detect_persons.py --dataset_path <root_directory>
 ```
 
 ### Step 3: Process Depth Information
-**Environment:** `py11-unidepth` | **Location:** `UniDepth/`
+**Environment:** `unidepth` | **Location:** `UniDepth/`
 
 ```bash
-cd UniDepth
-conda activate py11-unidepth
-python3 3_process_depth.py --dataset_path ../../../VBIG_dataset/
-cd ..
+conda activate unidepth 
+python3 3_process_depth.py --dataset_path <root_directory>
 ```
 
 ### Step 4: 3D Detection
@@ -109,16 +105,8 @@ cd ..
 ```bash
 cd DetAny3D
 conda activate py08-detany
-python3 4_predict_detany.py --dataset_path ../../../VBIG_dataset/
+python3 4_predict_detany.py --dataset_path <root_directory>
 cd ..
-```
-
-### Step 5: Extract Metadata
-**Environment:** `py10-video` | **Location:** Root directory
-
-```bash
-conda activate py10-video
-python3 5_detect_metadata.py --dataset_path ./VBIG_dataset/
 ```
 
 ## Notes
