@@ -40,7 +40,7 @@ conda create -n py10-video python=3.10
 conda activate py10-video
 # Install requirements from requirements.txt
 
-## INSTALL SAM3
+## INSTALL SAM3 (change the cuda version as you need)
 
 conda create --name sam3 python=3.12
 conda activate sam3
@@ -51,15 +51,15 @@ pip install -r sam3_requirements.txt
 
 ## INSTALL UNIDEPTH ENV
 
-conda create --name unidepth python=3.11
+conda create --name unidepth python=3.11 (change the cuda version as you need)
 conda activate unidepth
 pip install torch==2.9.0 torchvision==0.24.0 torchaudio==2.9.0 --index-url https://download.pytorch.org/whl/cu130
 pip install git+https://github.com/lpiccinelli-eth/UniDepth.git
 pip install transformers==5.5.0
 
 ## INSTALL DETANY3D
-conda create -n py08-detany python=3.8
-# Install DetAny3D requirements
+conda create -n py08-detany python=3.8 (change the cuda version as you need)
+
 
 ```
 
