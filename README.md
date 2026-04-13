@@ -106,7 +106,7 @@ python3 3_process_depth.py --dataset_path <root_directory>
 ```
 
 ### Step 4: 3D Detection
-**Environment:** `py08-detany` | **Location:** `DetAny3D/`
+**Environment:** `detany3d` | **Location:** `DetAny3D/`
 
 ```bash
 cd DetAny3D
